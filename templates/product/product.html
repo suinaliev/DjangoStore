@@ -1,59 +1,190 @@
 {% extends 'core/base.html' %}
 
-{% block title %}{{product.title}}{% endblock title %}
+{% block title %}{{product.title}} - Купить в интернет-магазине{% endblock title %}
 
 {% block content %}
-
-    {% if product.image %}
-        <figure class="image is-4by3 mb-6">
-            <img src="{{product.image.url}}" alt="{{product.title}}">
-        </figure>
-    {% endif %}
-
-    <h1 class="title">{{product.title}}, ${{product.price}}</h1>
-
-    <p class="mb-6">
-        <span class="tag is-dark">{{ product.vendor.name }}</span>
-    </p>
-
-    <p>{{product.description}}</p>
-
-    <hr>
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="notification is-success is-toast">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
-
-
-    <form method="post" action="">
-        {% csrf_token %}
-
-        <div class="field has-addons">
-            <div class="control">
-                <input type="number" name="quantity" value="1" class="input" min="1" id="">
-            </div>
-
-            <div class="control">
-                <button class="button is-dark is-uppercase">Add to Cart</button>
-            </div>
-        </div>
-    </form>
-
-
-    {% if similar_products %}
-        <hr>
+<div class="section">
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb has-arrow-separator" aria-label="breadcrumbs">
+            <ul>
+                <li><a href="{% url 'core:home' %}">Главная</a></li>
+                <li><a href="{% url 'product:category' product.category.slug %}">{{ product.category.title }}</a></li>
+                <li class="is-active"><a href="#" aria-current="page">{{ product.title }}</a></li>
+            </ul>
+        </nav>
 
         <div class="columns is-multiline">
-            <div class="column is-12">
-                <h2 class="subtitle">Similar Products</h2>
+            <!-- Product Images -->
+            <div class="column is-two-fifths">
+                <div class="card">
+                    <div class="card-image">
+                        {% if product.image %}
+                            <figure class="image is-4by3">
+                                <img src="{{ product.image.url }}" alt="{{product.title}}" class="has-ratio">
+                            </figure>
+                        {% else %}
+                            <figure class="image is-4by3">
+                                <img src="https://via.placeholder.com/800x600" alt="{{product.title}}">
+                            </figure>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
 
-            {% for product in similar_products %}
-                {% include 'product/parts/list_item.html' %}
-            {% endfor %}
-        </div>
-    {% endif %}
+            <!-- Product Info -->
+            <div class="column">
+                <div class="content">
+                    <h1 class="title is-2">{{product.title}}</h1>
+                    
+                    <!-- Brand Badge -->
+                    {% if product.brand %}
+                        <div class="tags are-medium mb-4">
+                            <span class="tag is-info">
+                                <i class="fas fa-trademark mr-2"></i>
+                                {{ product.brand.name }}
+                            </span>
+                        </div>
+                    {% endif %}
 
+                    <!-- Price Section -->
+                    <div class="box has-background-light">
+                        <div class="level is-mobile">
+                            <div class="level-left">
+                                <div class="level-item">
+                                    <p class="title is-3 has-text-success">{{product.price}} сом</p>
+                                </div>
+                            </div>
+                            <div class="level-right">
+                                <div class="level-item">
+                                    <button class="button is-info toggle-wishlist" data-product-id="{{ product.id }}">
+                                        <span class="icon">
+                                            <i class="far fa-heart"></i>
+                                        </span>
+                                        <span>В избранное</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add to Cart Form -->
+                        <form method="post" action="{% url 'cart:add_to_cart' product.id %}" class="mt-4">
+                            {% csrf_token %}
+                            <div class="field has-addons">
+                                <div class="control">
+                                    <input type="number" name="quantity" value="1" class="input is-medium" min="1" max="10">
+                                </div>
+                                <div class="control is-expanded">
+                                    <button class="button is-success is-medium is-fullwidth">
+                                        <span class="icon">
+                                            <i class="fas fa-shopping-cart"></i>
+                                        </span>
+                                        <span>Добавить в корзину</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Product Description -->
+                    <div class="content">
+                        <h3 class="title is-4">Описание</h3>
+                        <div class="box">
+                            {{product.description|linebreaks}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        {% if messages %}
+            <div class="notification-container">
+                {% for message in messages %}
+                    <div class="notification is-success is-light animate__animated animate__fadeIn">
+                        <button class="delete"></button>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Similar Products -->
+        {% if similar_products %}
+            <div class="section">
+                <h2 class="title is-2 has-text-centered mb-6">Похожие инструменты</h2>
+                <div class="columns is-multiline">
+                    {% for product in similar_products %}
+                        {% include 'product/parts/list_item.html' %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add custom styles -->
+<style>
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+    
+    .notification {
+        margin-bottom: 10px;
+        min-width: 300px;
+    }
+
+    .animate__animated {
+        animation-duration: 0.5s;
+    }
+
+    .animate__fadeIn {
+        animation-name: fadeIn;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .box.has-background-light {
+        border: 1px solid #dbdbdb;
+    }
+
+    .image.is-4by3 img {
+        object-fit: contain;
+        background: white;
+        width: 100%;
+        height: 100%;
+    }
+</style>
 {% endblock content %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle notification close buttons
+    document.querySelectorAll('.notification .delete').forEach(button => {
+        button.addEventListener('click', function() {
+            this.parentElement.remove();
+        });
+    });
+
+    // Auto-hide notifications after 5 seconds
+    setTimeout(function() {
+        document.querySelectorAll('.notification').forEach(notification => {
+            notification.remove();
+        });
+    }, 5000);
+});
+</script>
+{% endblock scripts %}

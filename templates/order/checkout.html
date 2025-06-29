@@ -1,0 +1,373 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Оформление заказа | {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Оформление заказа</h1>
+    
+    {% if messages %}
+    <div class="messages mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-md-8">
+            <form method="post" action="." id="checkout-form">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Контактная информация</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>{{ form.first_name.label }}</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>{{ form.last_name.label }}</label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>{{ form.email.label }}</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>{{ form.phone.label }}</label>
+                                {{ form.phone }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Адрес доставки</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label>{{ form.address.label }}</label>
+                            {{ form.address }}
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label>{{ form.zipcode.label }}</label>
+                                {{ form.zipcode }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label>{{ form.place.label }}</label>
+                                {{ form.place }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Способ доставки</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="shipping-methods">
+                            {% for radio in form.shipping_method %}
+                            <div class="shipping-method-item">
+                                {{ radio.tag }}
+                                <label class="shipping-method-label" for="{{ radio.id_for_label }}">
+                                    <div class="shipping-method-info">
+                                        <span class="shipping-method-name">{{ radio.choice_label }}</span>
+                                        <span class="shipping-method-price" data-price="{{ radio.choice_value.price }}">{{ radio.choice_value.price }} сом</span>
+                                    </div>
+                                    {% if radio.choice_value.description %}
+                                    <small class="shipping-method-description text-muted">
+                                        {{ radio.choice_value.description }}
+                                    </small>
+                                    {% endif %}
+                                </label>
+                            </div>
+                            {% endfor %}
+                            {% if form.shipping_method.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.shipping_method.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Способ оплаты</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="payment-methods">
+                            {% for radio in form.payment_method %}
+                            <div class="payment-method-item">
+                                {{ radio.tag }}
+                                <label class="payment-method-label" for="{{ radio.id_for_label }}">
+                                    <div class="payment-method-info">
+                                        <span class="payment-method-name">{{ radio.choice_label }}</span>
+                                        {% if radio.choice_value.payment_type == 'cash' %}
+                                        <span class="payment-method-icon">
+                                            <i class="fas fa-money-bill-wave"></i>
+                                        </span>
+                                        {% elif radio.choice_value.payment_type == 'stripe' %}
+                                        <span class="payment-method-icon">
+                                            <i class="fab fa-cc-stripe"></i>
+                                        </span>
+                                        {% elif radio.choice_value.payment_type == 'bank_transfer' %}
+                                        <span class="payment-method-icon">
+                                            <i class="fas fa-university"></i>
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    {% if radio.choice_value.description %}
+                                    <small class="payment-method-description text-muted">
+                                        {{ radio.choice_value.description }}
+                                    </small>
+                                    {% endif %}
+                                </label>
+                            </div>
+                            {% endfor %}
+                            {% if form.payment_method.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.payment_method.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div id="stripe-form" class="mt-3" style="display: none;">
+                            <div class="form-row">
+                                <div id="card-element" class="form-control">
+                                    <!-- Stripe Element будет вставлен здесь -->
+                                </div>
+                                <div id="card-errors" class="invalid-feedback" role="alert"></div>
+                            </div>
+                        </div>
+                        {{ form.stripe_token }}
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-lg btn-block mb-4" type="submit">
+                    Оформить заказ
+                </button>
+            </form>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Ваш заказ</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in cart %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{{ item.product.name }} × {{ item.quantity }}</span>
+                        <span>{{ item.total_price }} сом</span>
+                    </div>
+                    {% endfor %}
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>Товары:</strong>
+                        <span>{{ cart.get_total_cost }} сом</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 shipping-cost" style="display: none;">
+                        <strong>Доставка:</strong>
+                        <span>0 сом</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Итого:</strong>
+                        <strong class="total-cost">{{ cart.get_total_cost }} сом</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stripe = Stripe('{{ stripe_pub_key }}');
+    const elements = stripe.elements();
+    const card = elements.create('card');
+    const cardElement = document.getElementById('card-element');
+    const cardErrors = document.getElementById('card-errors');
+    const form = document.getElementById('checkout-form');
+    const stripeTokenInput = document.querySelector('input[name="stripe_token"]');
+    
+    // Монтируем Stripe Element
+    card.mount('#card-element');
+    
+    // Обработка ошибок в реальном времени
+    card.addEventListener('change', function(event) {
+        if (event.error) {
+            cardErrors.textContent = event.error.message;
+            cardErrors.style.display = 'block';
+        } else {
+            cardErrors.textContent = '';
+            cardErrors.style.display = 'none';
+        }
+    });
+    
+    // Обработка отправки формы
+    form.addEventListener('submit', function(event) {
+        const paymentMethod = document.querySelector('input[name="payment_method"]:checked');
+        
+        if (paymentMethod && paymentMethod.getAttribute('data-type') === 'stripe') {
+            event.preventDefault();
+            
+            stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                    cardErrors.textContent = result.error.message;
+                    cardErrors.style.display = 'block';
+                } else {
+                    stripeTokenInput.value = result.token.id;
+                    form.submit();
+                }
+            });
+        }
+    });
+    
+    // Показ/скрытие формы Stripe
+    document.querySelectorAll('input[name="payment_method"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            const stripeForm = document.getElementById('stripe-form');
+            if (this.getAttribute('data-type') === 'stripe') {
+                stripeForm.style.display = 'block';
+            } else {
+                stripeForm.style.display = 'none';
+            }
+        });
+    });
+    
+    // Обновление стоимости доставки
+    document.querySelectorAll('input[name="shipping_method"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            const shippingPrice = parseFloat(this.closest('label').querySelector('.shipping-method-price').getAttribute('data-price'));
+            const subtotal = parseFloat('{{ cart.get_total_cost }}');
+            const total = subtotal + shippingPrice;
+            
+            document.querySelector('.shipping-cost span').textContent = shippingPrice + ' сом';
+            document.querySelector('.shipping-cost').style.display = 'flex';
+            document.querySelector('.total-cost').textContent = total + ' сом';
+        });
+    });
+});
+</script>
+
+<style>
+.shipping-method-label,
+.payment-method-label {
+    display: block;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.shipping-method-label:hover,
+.payment-method-label:hover {
+    background-color: #f8f9fa;
+}
+
+.shipping-method-item input[type="radio"]:checked + .shipping-method-label,
+.payment-method-item input[type="radio"]:checked + .payment-method-label {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.shipping-method-info,
+.payment-method-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.shipping-method-name,
+.payment-method-name {
+    font-weight: 500;
+}
+
+.shipping-method-price {
+    font-weight: 500;
+    color: #28a745;
+}
+
+.shipping-method-description,
+.payment-method-description {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.payment-method-icon {
+    font-size: 1.25rem;
+    color: #6c757d;
+    margin-left: 10px;
+}
+
+#card-element {
+    padding: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+#card-errors {
+    color: #dc3545;
+    margin-top: 0.5rem;
+}
+
+.alert {
+    margin-bottom: 1rem;
+}
+
+/* Стили для радио кнопок */
+.shipping-radio,
+.payment-radio {
+    margin-right: 0.5rem;
+}
+
+/* Стили для карточек методов */
+.shipping-method-item,
+.payment-method-item {
+    margin-bottom: 1rem;
+}
+
+.shipping-method-item label,
+.payment-method-item label {
+    width: 100%;
+    margin: 0;
+}
+
+input[type="radio"] {
+    display: none;
+}
+</style>
+{% endblock %} 

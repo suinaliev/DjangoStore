@@ -1,0 +1,279 @@
+/* Современный дизайн админ-панели Django */
+
+/* Импорт шрифтов */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Основные переменные */
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --accent-color: #4895ef;
+    --success-color: #4cc9f0;
+    --danger-color: #f72585;
+    --warning-color: #f9c74f;
+    --info-color: #90b4ce;
+    --background-light: #e3e3e3;
+    --text-primary: #2b2d42;
+    --text-secondary: #6c757d;
+    --border-radius: 8px;
+    --transition: all 0.3s ease;
+}
+
+/* Базовые стили */
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+    color: var(--text-primary) !important;
+    line-height: 1.6 !important;
+}
+
+/* Заголовок админки */
+#header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    padding: 15px 40px !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+}
+
+#header #branding h1 {
+    font-weight: 600 !important;
+    font-size: 1.4rem !important;
+    letter-spacing: -0.02em !important;
+}
+
+#header a:link, #header a:visited {
+    color: white !important;
+    text-decoration: none !important;
+}
+
+/* Основной контент */
+#content {
+    padding: 25px !important;
+}
+
+.module {
+    border: none !important;
+
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05) !important;
+    border-radius: var(--border-radius) !important;
+    overflow: hidden !important;
+}
+
+.module h2, .module caption {
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    font-size: 1.1rem !important;
+    padding: 15px 20px !important;
+}
+
+/* Кнопки */
+.button, input[type=submit], input[type=button], .submit-row input {
+    background: var(--primary-color) !important;
+    color: white !important;
+    border-radius: var(--border-radius) !important;
+    padding: 10px 20px !important;
+    font-weight: 500 !important;
+    border: none !important;
+    transition: var(--transition) !important;
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover {
+    background: var(--secondary-color) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2) !important;
+}
+
+/* Таблицы */
+#changelist table {
+    border-radius: var(--border-radius) !important;
+    overflow: hidden !important;
+}
+
+#changelist table thead th {
+    background: var(--background-light) !important;
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    padding: 12px 15px !important;
+    font-size: 0.9rem !important;
+}
+
+.row1, .row2 {
+    transition: var(--transition) !important;
+}
+
+.row1:hover, .row2:hover {
+    background: rgba(67, 97, 238, 0.05) !important;
+}
+
+/* Формы */
+.form-row {
+    padding: 20px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+}
+
+.aligned label {
+    color: var(--text-primary) !important;
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+}
+
+input[type="text"], 
+input[type="password"], 
+input[type="email"], 
+input[type="number"], 
+input[type="url"], 
+input[type="tel"], 
+textarea, select {
+    border: 2px solid #e9ecef !important;
+    border-radius: var(--border-radius) !important;
+    padding: 8px 12px !important;
+    font-size: 0.95rem !important;
+    transition: var(--transition) !important;
+}
+
+input[type="text"]:focus, 
+input[type="password"]:focus, 
+input[type="email"]:focus, 
+input[type="number"]:focus, 
+input[type="url"]:focus, 
+input[type="tel"]:focus, 
+textarea:focus, 
+select:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1) !important;
+    outline: none !important;
+}
+
+/* Фильтры */
+#changelist-filter {
+    padding: 20px !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05) !important;
+}
+
+#changelist-filter h2 {
+    font-size: 1rem !important;
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    margin-bottom: 15px !important;
+}
+
+#changelist-filter li.selected {
+    border-left: 3px solid var(--primary-color) !important;
+    padding-left: 10px !important;
+    color: var(--primary-color) !important;
+    font-weight: 500 !important;
+}
+
+/* Сообщения */
+.success, .warning, .error {
+    border-radius: var(--border-radius) !important;
+    padding: 15px 20px !important;
+    margin: 20px 0 !important;
+    font-weight: 500 !important;
+}
+
+/* Пагинация */
+.paginator {
+    margin: 20px 0 !important;
+    font-size: 0.9rem !important;
+}
+
+.paginator a:link, .paginator a:visited {
+    color: var(--text-primary) !important;
+    border: 1px solid #e9ecef !important;
+    border-radius: var(--border-radius) !important;
+    padding: 8px 12px !important;
+    transition: var(--transition) !important;
+}
+
+.paginator a:hover {
+    background: var(--primary-color) !important;
+    color: white !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Адаптивный дизайн */
+@media (max-width: 1024px) {
+    #header {
+        padding: 15px 20px !important;
+    }
+    
+    #content {
+        padding: 15px !important;
+    }
+    
+    .form-row {
+        padding: 15px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .aligned label {
+        display: block !important;
+        padding: 0 0 5px !important;
+    }
+    
+    .aligned .form-row input {
+        width: 100% !important;
+    }
+    
+    #changelist-filter {
+        position: static !important;
+        width: 100% !important;
+        margin-top: 20px !important;
+    }
+}
+
+/* Дополнительные улучшения для русского интерфейса */
+.object-tools a {
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+}
+
+.help, p.help {
+    font-size: 0.9rem !important;
+    color: var(--text-secondary) !important;
+    margin-top: 5px !important;
+}
+
+/* Стили для превью изображений */
+.field-image_preview img, .field-logo_preview img {
+    border-radius: var(--border-radius) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    transition: var(--transition) !important;
+}
+
+/* Анимации при наведении */
+.field-image_preview img:hover, .field-logo_preview img:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
+}
+
+/* Улучшенные стили для действий */
+.actions {
+    background: var(--background-light) !important;
+    padding: 15px !important;
+    border-radius: var(--border-radius) !important;
+    margin-bottom: 20px !important;
+}
+
+.actions select {
+    margin-right: 10px !important;
+}
+
+/* Стили для вкладок */
+.submit-row {
+    background: var(--background-light) !important;
+    padding: 20px !important;
+    border-radius: var(--border-radius) !important;
+}
+
+.submit-row a.deletelink {
+    background: var(--danger-color) !important;
+    border-radius: var(--border-radius) !important;
+}
+
+.submit-row a.deletelink:hover {
+    background: #e60e5c !important;
+} 

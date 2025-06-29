@@ -1,0 +1,85 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Список желаний{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <h1 class="title">Список желаний</h1>
+        
+        {% if wishlist.products.all %}
+            <div class="columns is-multiline">
+                {% for product in wishlist.products.all %}
+                    <div class="column is-3">
+                        <div class="card">
+                            <div class="card-image">
+                                <figure class="image is-4by3">
+                                    <img src="{{ product.image.url }}" alt="{{ product.title }}">
+                                </figure>
+                            </div>
+                            <div class="card-content">
+                                <p class="title is-5">{{ product.title }}</p>
+                                <p class="subtitle is-6">{{ product.price }} сом</p>
+                                
+                                <div class="buttons">
+                                    <a href="{% url 'product:product' product.category.slug product.slug %}" class="button is-info is-small">
+                                        Подробнее
+                                    </a>
+                                    <button class="button is-danger is-small remove-from-wishlist" data-product-id="{{ product.id }}">
+                                        Удалить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="notification is-info">
+                <p>Ваш список желаний пуст.</p>
+                {% if not request.user.is_authenticated %}
+                    <p class="mt-3">
+                        <a href="{% url 'login' %}" class="button is-primary">Войдите</a> или 
+                        <a href="{% url 'core:register' %}" class="button is-info">зарегистрируйтесь</a>, 
+                        чтобы сохранить список желаний.
+                    </p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const wishlistButtons = document.querySelectorAll('.remove-from-wishlist');
+    wishlistButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = this.dataset.productId;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch(`/toggle-wishlist/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Перезагрузка страницы для обновления списка
+                    window.location.reload();
+                } else {
+                    console.error('Error:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 
