@@ -2,6 +2,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist
 
 from .models import Vendor
 from product.models import Product
@@ -14,7 +16,8 @@ from django.utils.text import slugify
 
 
 def vendors(request):
-    return render(request, 'vendor/vendors.html')
+    vendors = Vendor.objects.all()
+    return render(request, 'vendor/vendors.html', {'vendors': vendors})
 
 
 def become_vendor(request):
@@ -35,9 +38,15 @@ def become_vendor(request):
 
 @login_required
 def vendor_admin(request):
-    vendor = request.user.vendor
+    try:
+        vendor = request.user.vendor
+    except ObjectDoesNotExist:
+        messages.error(request, 'У вас нет прав продавца. Пожалуйста, станьте продавцом, чтобы получить доступ к панели управления.')
+        return redirect('vendor:become-vendor')
+
     products = vendor.products.all()
     orders = vendor.orders.all()
+    
     for order in orders:
         order.vendor_amount = 0
         order.vendor_paid_amount = 0
@@ -51,22 +60,31 @@ def vendor_admin(request):
                     order.vendor_amount += item.get_total_price()
                     order.fully_paid = False
 
-
-    return render(request, 'vendor/vendor_admin.html', {'vendor': vendor, 'products': products, 'orders': orders})
+    return render(request, 'vendor/vendor_admin.html', {
+        'vendor': vendor, 
+        'products': products, 
+        'orders': orders
+    })
 
 @login_required
 def add_product(request):
+    try:
+        vendor = request.user.vendor
+    except ObjectDoesNotExist:
+        messages.error(request, 'У вас нет прав продавца. Пожалуйста, станьте продавцом, чтобы добавлять товары.')
+        return redirect('vendor:become-vendor')
+
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
 
         if form.is_valid():
-            product = form.save(commit=False) # Because we have not given vendor yet
-            product.vendor = request.user.vendor
+            product = form.save(commit=False)
+            product.vendor = vendor
             product.slug = slugify(product.title)
-            product.save() #finally save
+            product.save()
 
+            messages.success(request, 'Товар успешно добавлен!')
             return redirect('vendor:vendor-admin')
-
     else:
         form = ProductForm
 
@@ -75,27 +93,28 @@ def add_product(request):
 
 @login_required
 def edit_vendor(request):
-    vendor = request.user.vendor
+    try:
+        vendor = request.user.vendor
+    except ObjectDoesNotExist:
+        messages.error(request, 'У вас нет прав продавца. Пожалуйста, станьте продавцом, чтобы редактировать профиль.')
+        return redirect('vendor:become-vendor')
 
     if request.method == 'POST':
-        name  = request.POST.get('name', '')
-        email = request.POST.get('email', '')
+        name = request.POST.get('name', '').strip()
+        email = request.POST.get('email', '').strip()
 
         if name:
             vendor.created_by.email = email
             vendor.created_by.save()
 
             vendor.name = name
-            vendor.save
+            vendor.save()
 
+            messages.success(request, 'Профиль продавца успешно обновлен!')
             return redirect('vendor:vendor-admin')
 
     return render(request, 'vendor/edit_vendor.html', {'vendor': vendor})
 
-
-def vendors(request):
-    vendors = Vendor.objects.all()
-    return render(request, 'vendor/vendors.html', {'vendors': vendors})
 
 def vendor(request, vendor_id):
     vendor = get_object_or_404(Vendor, pk=vendor_id)

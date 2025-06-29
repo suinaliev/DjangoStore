@@ -1,0 +1,206 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Каталог товаров{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <div class="columns">
+            <!-- Фильтры -->
+            <div class="column is-3">
+                <div class="box">
+                    <form method="get" action="{% url 'product:catalog' %}">
+                        <h3 class="title is-5 mb-4">Фильтры</h3>
+                        
+                        <!-- Категории -->
+                        <div class="field">
+                            <label class="label">Категории</label>
+                            <div class="control">
+                                {% for category in categories %}
+                                <label class="checkbox block">
+                                    <input type="checkbox" name="category" value="{{ category.slug }}"
+                                        {% if category.slug in selected_categories %}checked{% endif %}>
+                                    {{ category.title }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        {% if brands %}
+                        <!-- Бренды -->
+                        <div class="field">
+                            <label class="label">Бренды</label>
+                            <div class="control">
+                                {% for brand in brands %}
+                                <label class="checkbox block">
+                                    <input type="checkbox" name="brand" value="{{ brand.id }}"
+                                        {% if brand.id in selected_brands %}checked{% endif %}>
+                                    {{ brand.name }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <hr>
+                        {% endif %}
+
+                        <!-- Цена -->
+                        <div class="field">
+                            <label class="label">Цена</label>
+                            <div class="columns is-mobile">
+                                <div class="column">
+                                    <input class="input" type="number" name="min_price" placeholder="От"
+                                        value="{{ min_price|default:'' }}">
+                                </div>
+                                <div class="column">
+                                    <input class="input" type="number" name="max_price" placeholder="До"
+                                        value="{{ max_price|default:'' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <div class="control">
+                                <button type="submit" class="button is-primary is-fullwidth">Применить</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Список товаров -->
+            <div class="column is-9">
+                <div class="box">
+                    <div class="level">
+                        <div class="level-left">
+                            <div class="level-item">
+                                <h1 class="title">Каталог товаров</h1>
+                            </div>
+                        </div>
+                        <div class="level-right">
+                            <div class="level-item">
+                                <div class="field">
+                                    <div class="control">
+                                        <div class="select">
+                                            <select name="sort" onchange="this.form.submit()">
+                                                <option value="popular" {% if sort == 'popular' %}selected{% endif %}>По популярности</option>
+                                                <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Сначала дешевые</option>
+                                                <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Сначала дорогие</option>
+                                                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Сначала новые</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Активные фильтры -->
+                    {% if has_filters %}
+                    <div class="tags are-medium mb-5">
+                        {% if selected_categories %}
+                            {% for category in selected_categories %}
+                                <span class="tag is-info">
+                                    {{ category.title }}
+                                    <button class="delete is-small" onclick="removeFilter('category', '{{ category.slug }}')"></button>
+                                </span>
+                            {% endfor %}
+                        {% endif %}
+                        {% if selected_brands %}
+                            {% for brand in selected_brands %}
+                                <span class="tag is-info">
+                                    {{ brand.name }}
+                                    <button class="delete is-small" onclick="removeFilter('brand', '{{ brand.id }}')"></button>
+                                </span>
+                            {% endfor %}
+                        {% endif %}
+                        {% if min_price or max_price %}
+                            <span class="tag is-info">
+                                Цена: {% if min_price %}от {{ min_price }} сом{% endif %}
+                                {% if max_price %}до {{ max_price }} сом{% endif %}
+                                <button class="delete is-small" onclick="removeFilter('price')"></button>
+                            </span>
+                        {% endif %}
+                        <a href="{% url 'product:catalog' %}" class="tag is-danger">
+                            Сбросить все
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <!-- Товары -->
+                    <div class="columns is-multiline">
+                        {% for product in products %}
+                            {% include 'product/parts/list_item.html' %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Пагинация -->
+                    {% if products.has_other_pages %}
+                    <nav class="pagination is-centered mt-6" role="navigation" aria-label="pagination">
+                        {% if products.has_previous %}
+                            <a href="?page={{ products.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}"
+                                class="pagination-previous">Предыдущая</a>
+                        {% endif %}
+                        
+                        {% if products.has_next %}
+                            <a href="?page={{ products.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}"
+                                class="pagination-next">Следующая</a>
+                        {% endif %}
+
+                        <ul class="pagination-list">
+                            {% for num in products.paginator.page_range %}
+                                {% if products.number == num %}
+                                    <li><a class="pagination-link is-current" aria-label="Page {{ num }}"
+                                            aria-current="page">{{ num }}</a></li>
+                                {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                                    <li><a class="pagination-link" href="?page={{ num }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}"
+                                            aria-label="Page {{ num }}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function removeFilter(type, value) {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (type === 'price') {
+        urlParams.delete('min_price');
+        urlParams.delete('max_price');
+    } else {
+        const values = urlParams.getAll(type);
+        urlParams.delete(type);
+        values.forEach(v => {
+            if (v !== value) {
+                urlParams.append(type, v);
+            }
+        });
+    }
+    
+    window.location.search = urlParams.toString();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка сортировки
+    const sortSelect = document.querySelector('select[name="sort"]');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('sort', this.value);
+            window.location.search = urlParams.toString();
+        });
+    }
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,69 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django Admin') }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_admin.css' %}">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <i class="fas fa-store mr-2"></i>
+        Панель управления магазином
+    </a>
+</h1>
+{% endblock %}
+
+{% block usertools %}
+<div id="user-tools" class="d-flex align-items-center">
+    {% if user.is_active and user.is_staff %}
+        <div class="welcome-msg mr-3">
+            {% trans 'Welcome,' %}
+            <strong>{% firstof user.get_short_name user.get_username %}</strong>.
+        </div>
+        {% block userlinks %}
+            {% if site_url %}
+                <a href="{{ site_url }}" class="btn btn-outline-light btn-sm mr-2">
+                    <i class="fas fa-globe"></i>
+                    {% trans 'View site' %}
+                </a>
+            {% endif %}
+            {% if user.has_usable_password %}
+                <a href="{% url 'admin:password_change' %}" class="btn btn-outline-light btn-sm mr-2">
+                    <i class="fas fa-key"></i>
+                    {% trans 'Change password' %}
+                </a>
+            {% endif %}
+            <a href="{% url 'admin:logout' %}" class="btn btn-danger btn-sm">
+                <i class="fas fa-sign-out-alt"></i>
+                {% trans 'Log out' %}
+            </a>
+        {% endblock %}
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block nav-global %}
+<div class="quick-stats">
+    <div class="stat-card">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="stat-number">{{ order_count }}</span>
+        <span class="stat-label">Заказы</span>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-box"></i>
+        <span class="stat-number">{{ product_count }}</span>
+        <span class="stat-label">Товары</span>
+    </div>
+    <div class="stat-card">
+        <i class="fas fa-users"></i>
+        <span class="stat-number">{{ user_count }}</span>
+        <span class="stat-label">Пользователи</span>
+    </div>
+</div>
+{% endblock %} 

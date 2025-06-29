@@ -1,15 +1,453 @@
 {% extends 'core/base.html' %}
+{% load static %}
 
-{% block title %}Home Page{% endblock title %}
+{% block title %}Главная - Музыкальный магазин{% endblock title %}
 
 {% block content %}
-    <div class="columns is-multiline mb-6">
-        <div class="column is-12 has-test-centered mt-6 mb-6">
-            <h2 class="is-size-3">Latest Products</h2>
+    <!-- Hero Banner/Slider Section -->
+    <div class="hero is-medium mb-6">
+        <div class="hero-body p-0">
+            <div class="container is-fluid p-0">
+                <div class="slider-container">
+                    <div class="slider">
+                        {% for banner in banners %}
+                        <div class="slide {% if forloop.first %}is-active{% endif %}">
+                            <div class="columns is-gapless is-vcentered">
+                                <div class="column is-6 p-6 has-background-primary">
+                                    <div class="content has-text-white p-6">
+                                        <h1 class="title is-1 has-text-white mb-5">{{ banner.title }}</h1>
+                                        <p class="subtitle is-4 has-text-white-bis mb-5">{{ banner.description }}</p>
+                                        {% if banner.link %}
+                                        <a href="{{ banner.link }}" class="button is-white is-medium is-outlined">
+                                            <span>Подробнее</span>
+                                            <span class="icon">
+                                                <i class="fas fa-music"></i>
+                                            </span>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if banner.image %}
+                                <div class="column is-6">
+                                    <figure class="image is-16by9">
+                                        <img src="{{ banner.image.url }}" alt="{{ banner.title }}" class="banner-image">
+                                    </figure>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Slider Navigation -->
+                    <div class="slider-nav">
+                        <button class="prev-slide">
+                            <span class="icon">
+                                <i class="fas fa-chevron-left"></i>
+                            </span>
+                        </button>
+                        <button class="next-slide">
+                            <span class="icon">
+                                <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </button>
+                    </div>
+                    <!-- Slider Dots -->
+                    <div class="slider-dots">
+                        {% for banner in banners %}
+                        <button class="dot {% if forloop.first %}is-active{% endif %}" data-slide="{{ forloop.counter0 }}"></button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        {% for product in newest_products %}
-            {% include 'product/parts/list_item.html' %}
-        {% endfor %}
+    <!-- Features Section -->
+    <div class="section">
+        <div class="container">
+            <div class="columns is-multiline">
+                <div class="column is-3">
+                    <div class="feature-box has-text-centered">
+                        <span class="icon is-large has-text-primary">
+                            <i class="fas fa-guitar fa-2x"></i>
+                        </span>
+                        <h3 class="is-size-5 mt-4 mb-2">Профессиональный выбор</h3>
+                        <p class="has-text-grey">Инструменты от лучших производителей</p>
+                    </div>
+                </div>
+                <div class="column is-3">
+                    <div class="feature-box has-text-centered">
+                        <span class="icon is-large has-text-primary">
+                            <i class="fas fa-award fa-2x"></i>
+                        </span>
+                        <h3 class="is-size-5 mt-4 mb-2">Гарантия качества</h3>
+                        <p class="has-text-grey">2 года гарантии на все товары</p>
+                    </div>
+                </div>
+                <div class="column is-3">
+                    <div class="feature-box has-text-centered">
+                        <span class="icon is-large has-text-primary">
+                            <i class="fas fa-graduation-cap fa-2x"></i>
+                        </span>
+                        <h3 class="is-size-5 mt-4 mb-2">Консультации</h3>
+                        <p class="has-text-grey">Помощь в выборе инструмента</p>
+                    </div>
+                </div>
+                <div class="column is-3">
+                    <div class="feature-box has-text-centered">
+                        <span class="icon is-large has-text-primary">
+                            <i class="fas fa-tools fa-2x"></i>
+                        </span>
+                        <h3 class="is-size-5 mt-4 mb-2">Сервисный центр</h3>
+                        <p class="has-text-grey">Настройка и ремонт</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories Section -->
+    <div class="section has-background-light">
+        <div class="container">
+            <div class="columns is-multiline">
+                <div class="column is-12">
+                    <h2 class="title is-2 has-text-centered mb-6">
+                        <span>Категории инструментов</span>
+                    </h2>
+                </div>
+
+                {% for category in categories %}
+                <div class="column is-3">
+                    <div class="card category-card">
+                        <div class="card-content has-text-centered">
+                            <span class="icon is-large">
+                                <i class="fas {% if category.title == 'Гитары' %}fa-guitar{% elif category.title == 'Ударные' %}fa-drum{% elif category.title == 'Клавишные' %}fa-piano{% else %}fa-music{% endif %} fa-3x has-text-primary"></i>
+                            </span>
+                            <h3 class="title is-4 mt-4">{{ category.title }}</h3>
+                            <p class="subtitle is-6 has-text-grey mb-4">Широкий выбор инструментов</p>
+                            <a href="{% url 'product:category' category.slug %}" class="button is-primary is-outlined is-fullwidth">
+                                <span class="icon">
+                                    <i class="fas fa-arrow-right"></i>
+                                </span>
+                                <span>Перейти в каталог</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Products Section -->
+    <div class="section">
+        <div class="container">
+            <div class="columns is-multiline">
+                <div class="column is-12">
+                    <h2 class="title is-2 has-text-centered mb-6">
+                        <span>Популярные инструменты</span>
+                    </h2>
+                </div>
+
+                {% for product in popular_products %}
+                    {% include 'product/parts/list_item.html' %}
+                {% endfor %}
+
+                <div class="column is-12 has-text-centered mt-6">
+                    <a href="{% url 'product:catalog' %}" class="button is-primary is-medium">
+                        <span>Весь каталог</span>
+                        <span class="icon">
+                            <i class="fas fa-music"></i>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Newsletter Section -->
+    <div class="section has-background-primary">
+        <div class="container">
+            <div class="columns is-vcentered">
+                <div class="column is-6">
+                    <h3 class="title is-3 has-text-white">Будьте в курсе новинок</h3>
+                    <p class="subtitle has-text-white-bis">Подпишитесь на рассылку и получайте информацию о новых поступлениях и специальных предложениях</p>
+                </div>
+                <div class="column is-6">
+                    <form class="newsletter-form">
+                        <div class="field has-addons">
+                            <div class="control is-expanded">
+                                <input class="input is-medium" type="email" placeholder="Ваш email">
+                            </div>
+                            <div class="control">
+                                <button class="button is-white is-medium">
+                                    <span>Подписаться</span>
+                                    <span class="icon">
+                                        <i class="fas fa-music"></i>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock content %}
+
+{% block styles %}
+<style>
+    /* Slider Styles */
+    .slider-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .slider {
+        position: relative;
+    }
+
+    .slide {
+        display: none;
+        animation: fadeEffect 1s;
+    }
+
+    .slide.is-active {
+        display: block;
+    }
+
+    @keyframes fadeEffect {
+        from {opacity: 0.7;}
+        to {opacity: 1;}
+    }
+
+    .banner-image {
+        object-fit: cover;
+        height: 100%;
+        width: 100%;
+    }
+
+    /* Slider Navigation */
+    .slider-nav button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.3s;
+        z-index: 1;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .slider-nav button:hover {
+        opacity: 1;
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .prev-slide {
+        left: 20px;
+    }
+
+    .next-slide {
+        right: 20px;
+    }
+
+    /* Slider Dots */
+    .slider-dots {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .dot:hover {
+        background: rgba(255, 255, 255, 0.8);
+    }
+
+    .dot.is-active {
+        transform: scale(1.2);
+    }
+
+    /* Feature Boxes */
+    .feature-box {
+        padding: 2rem;
+        transition: all 0.3s ease;
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .feature-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .feature-box .icon {
+        transition: transform 0.3s ease;
+    }
+
+    .feature-box:hover .icon {
+        transform: scale(1.1);
+    }
+
+    /* Category Cards */
+    .category-card {
+        transition: all 0.3s ease;
+        height: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .category-card .icon {
+        transition: transform 0.3s ease;
+    }
+
+    .category-card:hover .icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    /* Newsletter Form */
+    .newsletter-form .input {
+        border: none;
+        box-shadow: none;
+        border-radius: 8px 0 0 8px;
+    }
+
+    .newsletter-form .button {
+        font-weight: bold;
+        border-radius: 0 8px 8px 0;
+    }
+
+    /* Section Titles */
+    .title .icon {
+        margin-right: 0.5rem;
+    }
+
+    /* Responsive Adjustments */
+    @media screen and (max-width: 768px) {
+        .slider-nav button {
+            width: 30px;
+            height: 30px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+        }
+
+        .hero-body {
+            padding: 2rem 1rem;
+        }
+
+        .title.is-2 {
+            font-size: 1.75rem;
+        }
+    }
+</style>
+{% endblock styles %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Slider functionality
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    const prevButton = document.querySelector('.prev-slide');
+    const nextButton = document.querySelector('.next-slide');
+    let currentSlide = 0;
+    let isAnimating = false;
+    
+    function showSlide(index) {
+        if (isAnimating) return;
+        isAnimating = true;
+        
+        slides.forEach(slide => {
+            slide.style.opacity = '0';
+            slide.classList.remove('is-active');
+        });
+        dots.forEach(dot => dot.classList.remove('is-active'));
+        
+        setTimeout(() => {
+            slides[index].classList.add('is-active');
+            slides[index].style.opacity = '1';
+            dots[index].classList.add('is-active');
+            isAnimating = false;
+        }, 300);
+    }
+    
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        showSlide(currentSlide);
+    }
+    
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+        showSlide(currentSlide);
+    }
+    
+    // Event listeners
+    if (prevButton && nextButton) {
+        prevButton.addEventListener('click', prevSlide);
+        nextButton.addEventListener('click', nextSlide);
+    }
+    
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            if (currentSlide !== index) {
+                currentSlide = index;
+                showSlide(currentSlide);
+            }
+        });
+    });
+    
+    // Auto-advance slides with smoother transitions
+    let slideInterval = setInterval(nextSlide, 5000);
+    
+    // Pause auto-advance on hover
+    const sliderContainer = document.querySelector('.slider-container');
+    if (sliderContainer) {
+        sliderContainer.addEventListener('mouseenter', () => {
+            clearInterval(slideInterval);
+        });
+        
+        sliderContainer.addEventListener('mouseleave', () => {
+            slideInterval = setInterval(nextSlide, 5000);
+        });
+    }
+
+    // Newsletter form submission
+    const newsletterForm = document.querySelector('.newsletter-form');
+    if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = this.querySelector('input[type="email"]').value;
+            // Add your newsletter subscription logic here
+            alert('Спасибо за подписку! ' + email);
+            this.reset();
+        });
+    }
+});
+</script>
+{% endblock scripts %}
+

@@ -1,0 +1,165 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="columns">
+    <div class="column is-3">
+        <div class="box">
+            <aside class="menu">
+                <p class="menu-label">
+                    Навигация
+                </p>
+                <ul class="menu-list">
+                    <li><a href="#profile" class="is-active">Профиль</a></li>
+                    <li><a href="#orders">История заказов</a></li>
+                    <li><a href="#wishlist">Избранные товары</a></li>
+                </ul>
+            </aside>
+        </div>
+    </div>
+
+    <div class="column is-9">
+        <!-- Профиль -->
+        <div id="profile" class="box">
+            <h2 class="title is-4">Информация о пользователе</h2>
+            <div class="content">
+                <p><strong>Имя пользователя:</strong> {{ request.user.username }}</p>
+                <p><strong>Email:</strong> {{ request.user.email }}</p>
+                <p><strong>Дата регистрации:</strong> {{ request.user.date_joined|date:"d.m.Y" }}</p>
+            </div>
+        </div>
+
+        <!-- История заказов -->
+        <div id="orders" class="box">
+            <h2 class="title is-4">История заказов</h2>
+            {% if orders %}
+                {% for order in orders %}
+                    <div class="card mb-4">
+                        <div class="card-content">
+                            <div class="columns">
+                                <div class="column">
+                                    <p><strong>Заказ #{{ order.id }}</strong></p>
+                                    <p>Дата: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+                                    <p>Статус: 
+                                        <span class="tag 
+                                            {% if order.status == 'pending' %}is-warning
+                                            {% elif order.status == 'processing' %}is-info
+                                            {% elif order.status == 'shipped' %}is-primary
+                                            {% elif order.status == 'delivered' %}is-success
+                                            {% else %}is-danger{% endif %}">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </p>
+                                    <div class="mt-3">
+                                        <p><strong>Адрес доставки:</strong></p>
+                                        <p>{{ order.first_name }} {{ order.last_name }}</p>
+                                        <p>{{ order.address }}</p>
+                                        <p>{{ order.place }}, {{ order.zipcode }}</p>
+                                    </div>
+                                </div>
+                                <div class="column">
+                                    <p class="has-text-weight-bold">Товары:</p>
+                                    {% for item in order.items.all %}
+                                        <div class="mb-2">
+                                            <p>{{ item.product.title }} x {{ item.quantity }}</p>
+                                            <p class="has-text-grey">{{ item.get_total_price }} сом</p>
+                                        </div>
+                                    {% endfor %}
+                                    <p class="has-text-weight-bold mt-4">Итого: {{ order.get_total_cost }} сом</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>У вас пока нет заказов.</p>
+            {% endif %}
+        </div>
+
+        <!-- Избранные товары -->
+        <div id="wishlist" class="box">
+            <h2 class="title is-4">Избранные товары</h2>
+            {% if wishlist.products.all %}
+                <div class="columns is-multiline">
+                    {% for product in wishlist.products.all %}
+                        <div class="column is-4">
+                            <div class="card">
+                                <div class="card-image">
+                                    <figure class="image is-4by3">
+                                        <img src="{{ product.image.url }}" alt="{{ product.title }}">
+                                    </figure>
+                                </div>
+                                <div class="card-content">
+                                    <p class="title is-5">{{ product.title }}</p>
+                                    <p class="subtitle is-6">{{ product.price }} сом</p>
+                                    <div class="buttons">
+                                        <a href="{% url 'product:product' product.category.slug product.slug %}" class="button is-info is-small">Подробнее</a>
+                                        <button class="button is-danger is-small remove-from-wishlist" data-product-id="{{ product.id }}">
+                                            Удалить из избранного
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>У вас пока нет избранных товаров.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка удаления из избранного
+    const wishlistButtons = document.querySelectorAll('.remove-from-wishlist');
+    wishlistButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = this.dataset.productId;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch(`/toggle-wishlist/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Перезагрузка страницы для обновления списка
+                    window.location.reload();
+                } else {
+                    console.error('Error:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+
+    // Навигация по вкладкам
+    const menuItems = document.querySelectorAll('.menu-list a');
+    menuItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Удаляем активный класс у всех пунктов
+            menuItems.forEach(i => i.classList.remove('is-active'));
+            // Добавляем активный класс текущему пункту
+            this.classList.add('is-active');
+            // Плавная прокрутка к секции
+            const targetId = this.getAttribute('href');
+            document.querySelector(targetId).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

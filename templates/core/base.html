@@ -1,4 +1,5 @@
 {% load static %}
+{% load wishlist_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -6,11 +7,68 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% csrf_token %}
     <title> {% block title %}Multi Vendor E-Commerce Website{% endblock title %} </title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.2/css/bulma.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
 
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1d4ed8;
+            --success-color: #059669;
+            --danger-color: #dc2626;
+            --warning-color: #d97706;
+            --info-color: #0891b2;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .product-list-item .card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .product-list-item .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .product-list-item .card-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-list-item .content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-list-item .buttons {
+            margin-top: auto;
+        }
+        
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .notification {
+            margin-bottom: 10px;
+            min-width: 300px;
+        }
+    </style>
 </head>
 <body>
 
@@ -18,7 +76,8 @@
         <nav class="navbar" role="navigation" aria-label="main navigation">
             <div class="navbar-brand">
                 <a class="navbar-item" href="{% url 'core:home' %}">
-                <img src="https://2.bp.blogspot.com/-mkVne3V2tzY/Xfo99c80KUI/AAAAAAAAD_c/9EbC4qu-fYAeVjLi3ONzRZ-osIW4H3qBACK4BGAYYCw/s1600/Vijay%2BThapa%2BLogo%2BHD.png" width="112" height="28">
+                    
+Music Store
                 </a>
 
                 <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
@@ -30,18 +89,30 @@
 
             <div id="navbarBasicExample" class="navbar-menu">
                 <div class="navbar-start">
-                <a class="navbar-item" href="{% url 'core:home' %}">
-                    Home
-                </a>
-                
-                {% for category in categories %}
-                    <a class="navbar-item" href="{% url 'product:category' category.slug %}">
-                        {{category.title}}
+                    <a class="navbar-item" href="{% url 'core:home' %}">
+                        Главная
                     </a>
-                {% endfor %}
+                    
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">
+                            Каталог
+                        </a>
+                        <div class="navbar-dropdown">
+                            <a href="{% url 'product:catalog' %}" class="navbar-item">
+                                Все товары
+                            </a>
+                            <hr class="navbar-divider">
+                            {% for category in categories %}
+                                <a class="navbar-item" href="{% url 'product:category' category.slug %}">
+                                    {{category.title}}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
 
-                
-
+                    <a class="navbar-item" href="{% url 'core:contact' %}">
+                        Контакты
+                    </a>
                 </div>
 
                 <div class="navbar-start">
@@ -49,10 +120,10 @@
                         <form method="get" action="{% url 'product:search' %}">
                             <div class="field has-addons">
                                 <div class="control">
-                                    <input type="search" name="query" id="" class="input" placeholder="Search...">
+                                    <input type="search" name="query" id="" class="input" placeholder="Поиск...">
                                 </div>
                                 <div class="control">
-                                    <button class="button is-dark is-uppercase">Search</button>
+                                    <button class="button is-dark">Поиск</button>
                                 </div>
                             </div>
                         </form>
@@ -62,48 +133,48 @@
                 <div class="navbar-end">
 
                 <div class="navbar-item">
-                    <a href="{% url 'cart:cart' %}" class="button is-warning">Cart {% if cart %}({{cart|length}}){% endif %}</a>
+                    <a href="{% url 'cart:cart' %}" class="button is-warning">
+                        <i class="fas fa-shopping-cart"></i>
+                        {% if cart %} ({{ cart|length }}){% endif %}
+                    </a>
+                    <a href="{% url 'core:wishlist' %}" class="button is-info ml-2">
+                        Список желаний
+                        {% get_wishlist_count as wishlist_count %}
+                        {% if wishlist_count > 0 %} ({{ wishlist_count }}){% endif %}
+                    </a>
                 </div>
+
                 
                 {% if request.user.is_authenticated %}
-
-                <div class="navbar-item has-dropdown is-hoverable">
-                    <a class="navbar-link is-capitalized">
-                    {{user.vendor.name}}
-                    </a>
-
-                    <div class="navbar-dropdown">
-                    <a class="navbar-item" href="{% url 'vendor:vendor-admin' %}">
-                        Profile
-                    </a>
-                    <a class="navbar-item" href="{% url 'vendor:edit-vendor' %}">
-                        Update Profile
-                    </a>
-                    <a class="navbar-item" href="{% url 'vendor:add-product' %}">
-                        Add Product
-                    </a>
-                    <hr class="navbar-divider">
-                    <a class="navbar-item" href="{% url 'vendor:logout' %}">
-                        Logout
-                    </a>
+                    <div class="navbar-item">
+                        <a class="button is-light" href="{% url 'core:account' %}">
+                            <i class="fas fa-user"></i>
+                        </a>
+                        {% if request.user.vendor %}
+                            <a class="button is-info ml-2" href="{% url 'vendor:vendor-admin' %}">
+                                Панель продавца
+                            </a>
+                        {% else %}
+                            <!-- <a class="button is-info ml-2" href="{% url 'vendor:become-vendor' %}">
+                                Стать продавцом
+                            </a> -->
+                        {% endif %}
+                        <a class="button is-danger ml-2" href="{% url 'logout' %}">
+                            Выйти
+                        </a>
                     </div>
-                </div>
-
                 {% else %}
-
-                <div class="navbar-item">
-                    <div class="buttons">
-                        <a class="button is-primary" href="{% url 'vendor:become-vendor' %}">
-                            <strong>Become Vendor</strong>
-                        </a>
-                        <a class="button is-light" href="{% url 'vendor:login' %}">
-                            Log in
-                        </a>
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            <a class="button is-primary" href="{% url 'core:register' %}">
+                                <strong>Регистрация</strong>
+                            </a>
+                            <a class="button is-light" href="{% url 'login' %}">
+                                Войти
+                            </a>
+                        </div>
                     </div>
-                </div>
-
                 {% endif %}
-
 
                 </div>
             </div>
@@ -119,25 +190,243 @@
     </section>
 
     
-    <footer class="footer">
+    <footer class="footer has-background-dark">
         <div class="container">
-            <h3 class="is-size-4 mb-4">Multi Vendor E-Commerce</h3>
-            
-            {% if request.user.is_authenticated %}
-                <a href="{% url 'vendor:vendor-admin' %}">Vendor Admin</a>
-            {% else %}
-                <a href="{% url 'vendor:become-vendor' %}">Become a Vendor</a>
-            {% endif %}
+            <div class="columns is-multiline">
+                <!-- Company Info -->
+                <div class="column is-4">
+                    <div class="content">
+                        <h3 class="title is-4 has-text-white mb-4">
+                            <span class="icon-text">
+                                <span class="icon has-text-primary">
+                                    <i class="fas fa-music"></i>
+                                </span>
+                                <span>Music Store</span>
+                            </span>
+                        </h3>
+                        <p class="has-text-grey-light mb-4">
+                            Ваш надежный партнер в мире музыки. Широкий выбор музыкальных инструментов, профессиональная консультация и сервисное обслуживание.
+                        </p>
+                        <div class="social-links">
+                            <a href="#" class="has-text-primary mr-3" title="Facebook">
+                                <span class="icon is-medium">
+                                    <i class="fab fa-facebook fa-lg"></i>
+                                </span>
+                            </a>
+                            <a href="#" class="has-text-primary mr-3" title="Instagram">
+                                <span class="icon is-medium">
+                                    <i class="fab fa-instagram fa-lg"></i>
+                                </span>
+                            </a>
+                            <a href="#" class="has-text-primary mr-3" title="YouTube">
+                                <span class="icon is-medium">
+                                    <i class="fab fa-youtube fa-lg"></i>
+                                </span>
+                            </a>
+                            <a href="#" class="has-text-primary" title="VK">
+                                <span class="icon is-medium">
+                                    <i class="fab fa-vk fa-lg"></i>
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
-            <br>
-            <a href="{% url 'vendor:vendors' %}">All Vendors</a>
+                <!-- Quick Links -->
+                <div class="column is-2">
+                    <h4 class="title is-5 has-text-white mb-4">Информация</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'core:home' %}" class="has-text-grey-light">Главная</a></li>
+                        <li><a href="{% url 'product:catalog' %}" class="has-text-grey-light">Каталог</a></li>
+                        <li><a href="{% url 'core:contact' %}" class="has-text-grey-light">Контакты</a></li>
+                        <li><a href="#" class="has-text-grey-light">О нас</a></li>
+                        <li><a href="#" class="has-text-grey-light">Доставка</a></li>
+                    </ul>
+                </div>
 
+                <!-- Categories -->
+                <div class="column is-2">
+                    <h4 class="title is-5 has-text-white mb-4">Категории</h4>
+                    <ul class="footer-links">
+                        {% for category in categories %}
+                            <li><a href="{% url 'product:category' category.slug %}" class="has-text-grey-light">{{ category.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="column is-4">
+                    <h4 class="title is-5 has-text-white mb-4">Контакты</h4>
+                    <ul class="footer-contacts">
+                        <li class="mb-3">
+                            <span class="icon-text">
+                                <span class="icon has-text-primary">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </span>
+                                <span class="has-text-grey-light">ул. Киевская, 123, Бишкек</span>
+                            </span>
+                        </li>
+                        <li class="mb-3">
+                            <span class="icon-text">
+                                <span class="icon has-text-primary">
+                                    <i class="fas fa-phone"></i>
+                                </span>
+                                <span class="has-text-grey-light">+996500400307</span>
+                            </span>
+                        </li>
+                        <li class="mb-3">
+                            <span class="icon-text">
+                                <span class="icon has-text-primary">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <span class="has-text-grey-light">info@musicstore.kg</span>
+                            </span>
+                        </li>
+                        <li>
+                            <span class="icon-text">
+                                <span class="icon has-text-primary">
+                                    <i class="fas fa-clock"></i>
+                                </span>
+                                <span class="has-text-grey-light">Пн-Вс: 10:00 - 20:00</span>
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="columns mt-6">
+                <div class="column">
+                    <hr class="has-background-grey-darker mb-4">
+                    <p class="has-text-grey-light has-text-centered">
+                        © {% now "Y" %} Music Store. Все права защищены.
+                    </p>
+                </div>
+            </div>
         </div>
     </footer>
 
+    <style>
+    .footer {
+        padding: 4rem 1.5rem;
+    }
+
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .footer-links li {
+        margin-bottom: 1rem;
+    }
+
+    .footer-links a {
+        transition: color 0.3s ease;
+    }
+
+    .footer-links a:hover {
+        color: white !important;
+    }
+
+    .footer-contacts {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .social-links a {
+        transition: transform 0.3s ease;
+        display: inline-block;
+    }
+
+    .social-links a:hover {
+        transform: translateY(-3px);
+    }
+
+    .icon-text {
+        align-items: center;
+    }
+
+    @media screen and (max-width: 768px) {
+        .footer {
+            padding: 3rem 1.5rem;
+        }
+    }
+    </style>
+
     <script src="{% static 'js/main.js' %}"></script>
-    {% block scripts %}
-    {% endblock scripts %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Wishlist toggle functionality
+        document.querySelectorAll('.toggle-wishlist').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const productId = this.dataset.productId;
+                
+                fetch(`/toggle-wishlist/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Update button appearance
+                        const icon = this.querySelector('i');
+                        const text = this.querySelector('span:not(.icon)');
+                        
+                        if (data.is_in_wishlist) {
+                            this.classList.remove('is-info');
+                            this.classList.add('is-danger');
+                            icon.classList.remove('far');
+                            icon.classList.add('fas');
+                            text.textContent = 'В избранном';
+                        } else {
+                            this.classList.remove('is-danger');
+                            this.classList.add('is-info');
+                            icon.classList.remove('fas');
+                            icon.classList.add('far');
+                            text.textContent = 'В избранное';
+                        }
+                        
+                        // Show notification
+                        const notification = document.createElement('div');
+                        notification.className = 'notification is-success animate__animated animate__fadeIn';
+                        notification.innerHTML = `
+                            <button class="delete"></button>
+                            ${data.message}
+                        `;
+                        
+                        const container = document.querySelector('.notification-container') || (() => {
+                            const cont = document.createElement('div');
+                            cont.className = 'notification-container';
+                            document.body.appendChild(cont);
+                            return cont;
+                        })();
+                        
+                        container.appendChild(notification);
+                        
+                        // Remove notification after 3 seconds
+                        setTimeout(() => {
+                            notification.remove();
+                        }, 3000);
+                        
+                        // Handle notification close button
+                        notification.querySelector('.delete').addEventListener('click', () => {
+                            notification.remove();
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        });
+    });
+    </script>
+    {% block scripts %}{% endblock scripts %}
 
 </body>
 </html>

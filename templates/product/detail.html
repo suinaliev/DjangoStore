@@ -1,0 +1,160 @@
+{% extends 'core/base.html' %}
+{% load wishlist_tags %}
+
+{% block title %}{{ product.title }}{% endblock %}
+
+{% block content %}
+<div class="columns">
+    <div class="column is-4">
+        <figure class="image">
+            <img src="{{ product.image.url }}" alt="{{ product.title }}">
+        </figure>
+    </div>
+    
+    <div class="column is-8">
+        <h1 class="title">{{ product.title }}</h1>
+        <h2 class="subtitle">{{ product.price }} сом</h2>
+        
+        <p class="mb-6">{{ product.description }}</p>
+        
+        <div class="buttons">
+            <form method="post" action="{% url 'cart:add_to_cart' product.id %}" class="mr-4">
+                {% csrf_token %}
+                <div class="field has-addons">
+                    <div class="control">
+                        <input type="number" name="quantity" value="1" min="1" class="input">
+                    </div>
+                    <div class="control">
+                        <button class="button is-success">Добавить в корзину</button>
+                    </div>
+                </div>
+            </form>
+
+            {% if request.user.is_authenticated %}
+                {% with user_wishlist=request.user.wishlist_set.first %}
+                    <button class="button {% if product in user_wishlist.products.all %}is-danger{% else %}is-info{% endif %} toggle-wishlist" data-product-id="{{ product.id }}">
+                        <span class="icon">
+                            <i class="{% if product in user_wishlist.products.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                        </span>
+                        <span>
+                            {% if product in user_wishlist.products.all %}
+                                Удалить из избранного
+                            {% else %}
+                                Добавить в избранное
+                            {% endif %}
+                        </span>
+                    </button>
+                {% endwith %}
+            {% else %}
+                {% with session_wishlist=request.session.session_key|wishlist_by_session %}
+                    <button class="button {% if session_wishlist and product in session_wishlist.products.all %}is-danger{% else %}is-info{% endif %} toggle-wishlist" data-product-id="{{ product.id }}">
+                        <span class="icon">
+                            <i class="{% if session_wishlist and product in session_wishlist.products.all %}fas{% else %}far{% endif %} fa-heart"></i>
+                        </span>
+                        <span>
+                            {% if session_wishlist and product in session_wishlist.products.all %}
+                                Удалить из избранного
+                            {% else %}
+                                Добавить в избранное
+                            {% endif %}
+                        </span>
+                    </button>
+                {% endwith %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if messages %}
+    <div class="notification-container">
+        {% for message in messages %}
+            <div class="notification {% if message.tags %}is-{{ message.tags }}{% endif %} animate__animated animate__fadeIn">
+                <button class="delete"></button>
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const wishlistButton = document.querySelector('.toggle-wishlist');
+    if (wishlistButton) {
+        wishlistButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = this.dataset.productId;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch(`/toggle-wishlist/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const icon = this.querySelector('i');
+                    const text = this.querySelector('span:not(.icon)');
+                    
+                    if (data.is_in_wishlist) {
+                        this.classList.remove('is-info');
+                        this.classList.add('is-danger');
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                        text.textContent = 'Удалить из избранного';
+                    } else {
+                        this.classList.remove('is-danger');
+                        this.classList.add('is-info');
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                        text.textContent = 'Добавить в избранное';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    }
+
+    // Handle notification dismissal
+    document.querySelectorAll('.notification .delete').forEach(button => {
+        button.addEventListener('click', () => {
+            button.parentElement.remove();
+        });
+    });
+});
+</script>
+
+<style>
+.notification-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.notification {
+    margin-bottom: 10px;
+    min-width: 300px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate__fadeIn {
+    animation: fadeIn 0.5s ease-out;
+}
+</style>
+{% endblock %} 

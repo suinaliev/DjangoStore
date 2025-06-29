@@ -1,0 +1,81 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Спасибо за заказ{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="display-4 mb-4">
+                        <i class="fas fa-check-circle text-success"></i>
+                        Спасибо за заказ!
+                    </h1>
+                    
+                    <p class="lead">
+                        Ваш заказ #{{ order.id }} успешно оформлен.
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <p class="mb-0">
+                            Мы отправили подтверждение заказа на ваш email: <strong>{{ order.email }}</strong>
+                        </p>
+                    </div>
+
+                    <div class="order-details mt-4">
+                        <h3>Детали заказа:</h3>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <th>Способ доставки:</th>
+                                        <td>{{ order.shipping_method.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Адрес доставки:</th>
+                                        <td>{{ order.address }}, {{ order.place }}, {{ order.zipcode }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Способ оплаты:</th>
+                                        <td>{{ order.payment_method.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Сумма заказа:</th>
+                                        <td>{{ order.paid_amount }} сом</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'core:home' %}" class="btn btn-primary">
+                            <i class="fas fa-home"></i> Вернуться на главную
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.display-4 {
+    font-size: 2.5rem;
+}
+
+.fa-check-circle {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.order-details {
+    text-align: left;
+}
+
+.table th {
+    width: 30%;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,283 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .dashboard {
+        padding: 2rem;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .dashboard-card {
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .dashboard-card-header {
+        padding: 1rem 1.5rem;
+        background: var(--background-light);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .dashboard-card-header h2 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .dashboard-card-header .icon {
+        color: var(--primary-color);
+        font-size: 1.2rem;
+    }
+
+    .dashboard-card-content {
+        padding: 1.5rem;
+    }
+
+    .dashboard-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .dashboard-list-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .dashboard-list-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .dashboard-list-item a {
+        color: var(--text-primary);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .dashboard-list-item a:hover {
+        color: var(--primary-color);
+    }
+
+    .dashboard-list-item .count {
+        background: var(--background-light);
+        color: var(--text-secondary);
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--radius-sm);
+        font-size: 0.9rem;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .quick-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .quick-action-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+
+    .quick-action-btn i {
+        font-size: 1.2rem;
+    }
+
+    /* Add styles for stat cards */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding: 1rem;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        text-align: center;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .stat-card i {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 600;
+        display: block;
+        margin: 0.5rem 0;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+        <div class="dashboard">
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+        <a href="{% url 'admin:order_order_add' %}" class="quick-action-btn">
+            <i class="fas fa-plus-circle"></i>
+            <span>Новый заказ</span>
+        </a>
+        <a href="{% url 'admin:product_product_add' %}" class="quick-action-btn">
+            <i class="fas fa-box"></i>
+            <span>Добавить товар</span>
+        </a>
+        <a href="{% url 'admin:auth_user_add' %}" class="quick-action-btn">
+            <i class="fas fa-user-plus"></i>
+            <span>Новый пользователь</span>
+        </a>
+        <a href="{% url 'admin:index' %}" class="quick-action-btn">
+            <i class="fas fa-cog"></i>
+            <span>Настройки</span>
+        </a>
+
+    </div>
+
+    <!-- App Modules -->
+    <div class="dashboard-grid">
+        {% for app in app_list %}
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h2>
+                    <i class="fas {% if app.name == 'Authentication and Authorization' %}fa-users-cog
+                              {% elif app.name == '' %}fa-shopping-cart
+                              {% elif app.name == '' %}fa-box
+                              {% elif app.name == '' %}fa-store
+                              {% else %}fa-folder{% endif %} mr-2"></i>
+                    {{ app.name }}
+                </h2>
+            </div>
+            <div class="dashboard-card-content">
+                <ul class="dashboard-list">
+                    {% for model in app.models %}
+                    <li class="dashboard-list-item">
+                        {% if model.admin_url %}
+                        <a href="{{ model.admin_url }}">
+                            <i class="fas {% if model.object_name == 'User' %}fa-user
+                                      {% elif model.object_name == 'Group' %}fa-users
+                                      {% elif model.object_name == 'Order' %}fa-file-invoice
+                                      {% elif model.object_name == 'Product' %}fa-box
+                                      {% else %}fa-circle{% endif %}"></i>
+                            {{ model.name }}
+                        </a>
+                        {% else %}
+                        {{ model.name }}
+                        {% endif %}
+                        
+                        {% if model.add_url or model.admin_url %}
+                        <div class="actions">
+                            {% if model.add_url %}
+                            <a href="{{ model.add_url }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            {% endif %}
+                            <span class="count">{{ model.count }}</span>
+                        </div>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recent Actions -->
+    <div class="dashboard-card">
+        <div class="dashboard-card-header">
+            <h2>
+                <i class="fas fa-history mr-2"></i>
+                {% trans 'Recent actions' %}
+            </h2>
+        </div>
+        <div class="dashboard-card-content">
+            {% load log %}
+            {% get_admin_log 10 as admin_log %}
+            {% if not admin_log %}
+            <p>{% trans 'None available' %}</p>
+            {% else %}
+            <ul class="dashboard-list">
+                {% for entry in admin_log %}
+                <li class="dashboard-list-item">
+                    {% if entry.is_addition %}
+                    <i class="fas fa-plus-circle text-success"></i>
+                    {% elif entry.is_change %}
+                    <i class="fas fa-edit text-warning"></i>
+                    {% elif entry.is_deletion %}
+                    <i class="fas fa-trash-alt text-danger"></i>
+                    {% endif %}
+                    
+                    {% if entry.is_deletion or not entry.get_admin_url %}
+                    {{ entry.object_repr }}
+                    {% else %}
+                    <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                    {% endif %}
+                    
+                    <span class="text-muted">
+                        {% if entry.content_type %}
+                        <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+                        {% else %}
+                        <span class="mini quiet">{% trans 'Unknown content' %}</span>
+                        {% endif %}
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

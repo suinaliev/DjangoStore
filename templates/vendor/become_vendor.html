@@ -1,20 +1,30 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Become Vendor {% endblock title %}
+{% block title %}Добро пожаловать{% endblock %}
 
 {% block content %}
-
-    <h1 class="title">Become Vendor</h1>
-
-    <form method="post" action="">
-        {% csrf_token %}
-
-        {{ form.as_p }}
-
-        <div class="field">
-            <div class="control">
-                <button class="button is-dark is-uppercase">Sign Up</button>
+<div class="columns is-centered">
+    <div class="column is-half">
+        <div class="box">
+            <h1 class="title has-text-centered">Добро пожаловать, {{ user.username }}!</h1>
+            
+            <div class="content mb-5">
+                <p>Рады видеть вас на нашем сайте! Теперь вы можете:</p>
+                <ul>
+                    <li>Просматривать каталог товаров</li>
+                    <li>Добавлять товары в корзину</li>
+                    <li>Оформлять заказы</li>
+                    <li>Управлять настройками профиля</li>
+                </ul>
             </div>
+
+            <div class="field">
+                <div class="control">
+                    <a href="{% url 'core:home' %}" class="button is-primary is-fullwidth">Перейти к покупкам</a>
+                </div>
+            </div>
+
         </div>
-    </form>
-{% endblock content %}
+    </div>
+</div>
+{% endblock %}
